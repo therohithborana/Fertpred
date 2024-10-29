@@ -1,7 +1,7 @@
 import joblib
 import pandas as pd
 from sklearn.preprocessing import LabelEncoder
-import gradio as gr
+import streamlit as st
 
 # Assuming your data for soil and crop type is already available as a DataFrame
 # Encode the Soil Type and Crop Type
@@ -9,8 +9,8 @@ encode_soil = LabelEncoder()
 encode_crop = LabelEncoder()
 
 # Dummy DataFrame creation (you should replace this with your actual data)
-soil_types = ['Sandy','Loamy','Black','Red','Clayey']
-crop_types = ['Maize','Sugarcane','Cotton','Tobacco','Paddy','Barley','Wheat','Millets','Oil seeds','Pulses','Ground Nuts']
+soil_types = ['Sandy', 'Loamy', 'Black', 'Red', 'Clayey']
+crop_types = ['Maize', 'Sugarcane', 'Cotton', 'Tobacco', 'Paddy', 'Barley', 'Wheat', 'Millets', 'Oil seeds', 'Pulses', 'Ground Nuts']
 
 # Fit encoders to the sample data
 encode_soil.fit(soil_types)
@@ -47,26 +47,28 @@ def predict_fertilizer(temperature, humidity, moisture, soil_type, crop_type, ni
 
     return fertilizers.get(ans[0], "Unknown Fertilizer")
 
-# Gradio interface components
-temperature = gr.Number(label="Temperature")
-humidity = gr.Number(label="Humidity")
-moisture = gr.Number(label="Moisture")
-soil_type = gr.Dropdown(choices=list(Soil_Type.index), label="Soil Type")
-crop_type = gr.Dropdown(choices=list(Crop_Type.index), label="Crop Type")
-nitrogen = gr.Number(label="Nitrogen")
-potassium = gr.Number(label="Potassium")
-phosphorous = gr.Number(label="Phosphorous")
-output = gr.Textbox(label="Recommended Fertilizer")
+# Streamlit app
+def main():
+    st.title("Fertilizer Recommendation System")
+    st.write("Enter crop and soil details to get recommended fertilizer.")
 
-# Gradio interface setup
-iface = gr.Interface(
-    fn=predict_fertilizer,
-    inputs=[temperature, humidity, moisture, soil_type, crop_type, nitrogen, potassium, phosphorous],
-    outputs=output,
-    title="Fertilizer Recommendation System",
-    description="Enter crop and soil details to get recommended fertilizer."
-)
+    # Input fields
+    temperature = st.number_input("Temperature (°C)", min_value=0.0, format="%.2f")
+    humidity = st.number_input("Humidity (%)", min_value=0.0, format="%.2f")
+    moisture = st.number_input("Moisture (%)", min_value=0.0, format="%.2f")
+    
+    soil_type = st.selectbox("Soil Type", options=list(Soil_Type.index))
+    crop_type = st.selectbox("Crop Type", options=list(Crop_Type.index))
+    
+    nitrogen = st.number_input("Nitrogen (kg/ha)", min_value=0.0, format="%.2f")
+    potassium = st.number_input("Potassium (kg/ha)", min_value=0.0, format="%.2f")
+    phosphorous = st.number_input("Phosphorous (kg/ha)", min_value=0.0, format="%.2f")
 
-# Launch the Gradio app
+    # Prediction button
+    if st.button("Get Recommendation"):
+        result = predict_fertilizer(temperature, humidity, moisture, soil_type, crop_type, nitrogen, potassium, phosphorous)
+        st.success(f"Recommended Fertilizer: {result}")
+
+# Run the app
 if __name__ == "__main__":
-    iface.launch()
+    main()
